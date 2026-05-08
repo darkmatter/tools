@@ -42,6 +42,7 @@
         flakeModules = {
           default = ./modules/flake-parts;
           agenix-rekey = ./modules/flake-parts/ci/agenix-rekey.nix;
+          r2 = ./modules/flake-parts/r2.nix;
         };
         homeManagerModules = {
           default = defaultHomeManagerModule;
@@ -79,6 +80,9 @@
             cachix.enable = true;
             cachix.name = "darkmatter";
           };
+          # Expose mount-darkmatter / unmount-darkmatter / configure-darkmatter-r2
+          # apps that mount Cloudflare R2 buckets at ~/darkmatter/{public,team,personal}.
+          darkmatter.r2.enable = true;
         };
     };
 }
