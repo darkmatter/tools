@@ -127,26 +127,54 @@ By default all shared Darkmatter secrets are installed. Limit the set with:
 
 This flake also exposes a few runnable utilities for the team.
 
-### `rclone-s3`
+### Cloudflare R2 mounts at `~/darkmatter`
 
-Mount an S3 bucket locally with `rclone`:
+Three Cloudflare R2 buckets are exposed as local FUSE mounts under `~/darkmatter`:
 
-```/dev/null/example.sh#L1-1
-nix run github:darkmatter/nix#rclone-s3 -- ~/path/to/dir bucket-name
+- `~/darkmatter/public`  &mdash; bucket `darkmatter-public`
+- `~/darkmatter/team`    &mdash; bucket `darkmatter-team`
+- `~/darkmatter/personal` &mdash; bucket `darkmatter-personal`
+
+One-time setup &mdash; create the rclone remote (`darkmatter-r2`):
+
+```bash
+# Will prompt for account id / access key / secret if not in env.
+R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
+  nix run github:darkmatter/nix#configure-darkmatter-r2
 ```
 
-This command expects:
+Mount everything (or a single bucket):
 
-- argument 1: local mount directory
-- argument 2: S3 bucket name
+```bash
+nix run github:darkmatter/nix#mount-darkmatter
+nix run github:darkmatter/nix#mount-darkmatter -- team
+```
 
-The wrapper also exports AWS environment variables before starting `rclone` so teammates do not need to remember the right profile settings manually. Fill in the placeholder values in `flake.nix` for your environment, for example:
+Unmount:
 
-- `AWS_PROFILE`
-- `AWS_REGION`
-- `AWS_DEFAULT_REGION`
+```bash
+nix run github:darkmatter/nix#unmount-darkmatter
+nix run github:darkmatter/nix#unmount-darkmatter -- personal
+```
 
-Once mounted, unmount it the usual way for your OS when you are done.
+Override the mount root for a single invocation with `DARKMATTER_BASE_DIR=/some/path`.
+
+To customize bucket names, the rclone remote name, or the mount layout in another flake, import the module and override the options:
+
+```nix
+{
+  imports = [ inputs.darkmatter.flakeModules.r2 ];
+
+  perSystem = { ... }: {
+    darkmatter.r2 = {
+      enable = true;
+      accountId = "<cloudflare-account-id>";
+      mounts.team.bucket = "my-team-bucket";
+      mounts.archive = { bucket = "my-archive-bucket"; };
+    };
+  };
+}
+```
 
 ## Quick Start
 
