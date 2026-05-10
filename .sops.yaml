@@ -1,8 +1,31 @@
-keys:
-  - &cooper age1psa52j93p0t7rej4lyzeww6hzg9hh4ylxu6v30tcgag44apw8als2xg3ef
-  - &keyservice age16wuzuxnkcgfuxzvzgk5e5a5f6hhs386adjewyv54m9esr4yj6uuslpn6tp
 creation_rules:
   - path_regex: .*
     age:
-      - *cooper
-      - *keyservice
+      - age1ua3n0xa25z5tnrhhkndmkpz9elwsxw5jzq89fwldwlcm6wxg9ddsaxksm4
+      - age1unp2wxu3h5t5up5zsnqurwac69v84vtuy8lllpdwf03gddc6xfws00nu2a
+      - age164al9lamrv4ufza9wvg5g5kh863yenq0gdggyxujugxqlv00894spd6jj9
+      - age1vapyvpjzqg8wdfay055s574qt0u6avtzv4ch7kv0epvtycpyjqzqk3m4yr
+      - age14vpdar7vzznyxgskp9772zjar95n8l2f36w6tzk980889t7kjdqsc5a50q
+      - age1ugmyh9qcz05ehtkgnt2nn3jfz2rf2umnmqx69pgp2ue82dn7vpuqlc3g7v
+      - age1a99dvwfqr0xem06qaz3smxzdwjrqrqlxtprgv8ug9k540cpg9alqr2k0yl
+      - age1xmyh3xuyhfs8eddk2l5seux308tw3h2az84q8etcfmsdqtrf25jqvwvg4m
+      - age16ymszt6hmv7p3w596w5wlzng7wgk6mwcchr8s2nvwutnx2nrzyqsvn678s
+      - age12vnpyjwhnnm85vktfmg6jwzn55fcg0lmgn6q0wx2z4wawnwgm5cqt6yf2f
+      - age1ph0gtrpvus5y2kl5t5wnmlcjpevavxf4l2aagrqyp7nng7jvluus959fvq
+      - age1sy6t7kdeyf63mjnrdnqm08rjv2s5ddexgncuq4ps6z4c5hgg4dzqp6pznq
+      - age1ruav09tz635tt3sgq55pgn83qnte0j2nx0jd6gvjxelkqqdtygcqgcam2t
+      - age1dwqnyurvm7vasf9n7alduzmg79nczkuafknr8x3l4jnzwnuzzydqj0y92p
+      - age1dx6u86w8d242tvjesz362caf4lcatw24ldd0hj9qn7xhqw0s0c5qus8wxt
+      - age1h0nv9lwkkhd9y0rlf832g3lualvjafqpyvlkgf8d0cn6c4zg959qkrfzt3
+      - age1fm7zr0ea3d589tkgcz2klqgnajduzkr25e8tnhh7qxzuleqxq3yq3c0s3t
+      - age1yuh8vhakrwn2nm4dzxmdp99cmvl3cd4af36p5w2v559263a4uy4sulpn60
+      - age17dh936q0l622ez7m0zfak46awqdx35hldqzsfnh72cgtcthlhg4qdl74fh
+      - age1v37wpvtxpr2vhvlqpvvzn3h893p8p6pdwfdzvwlr2627u4aj9c7qc0sj5h
+      - age13mn4c0kc5q0k4p938hfm433ryy9fp7dywt73g8v3n36q9g5ntszquv67nr
+      - age13mn4c0kc5q0k4p938hfm433ryy9fp7dywt73g8v3n36q9g5ntszquv67nr
+      - age1l7ekaqz3ywl33t26anu39hpq7c6neajdfd5059v7837umetfrgnsrjsnxk
+      - age16wuzuxnkcgfuxzvzgk5e5a5f6hhs386adjewyv54m9esr4yj6uuslpn6tp
+      - age1tk24f3ydhcj5quyeevqgup0y73dygda2vzr298sr34xn0n92ae7q474khy
+      - age1c2q5fm3l3gn2tgcs35xstu44mu2zyrft993ksljw5r3z4dzcqcfq6vtakn
+      - age1eqcj2g0fdekj2wpqp4y0fg9c5myydjdt9zlr5scr0grk6fxszymqkpw5jf
+      - age1fl49zw0clyxawnp4k4e7t2z6sznn4p9cpvsmw5v9pztlr4egzgjsa28wre
