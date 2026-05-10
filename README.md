@@ -2,6 +2,88 @@
 
 This directory contains all the nix modules that are used in this repo. We use [devenv](https://devenv.sh) which is a friendlier method to use Nix for non-Nix users, while still being powerful.
 
+## Shared Flake Utilities
+
+This flake exposes runnable utilities for the team.
+
+### `rclone-drive-setup`
+
+Recommended first-time setup for Google Drive mounts:
+
+`nix run github:darkmatter/nix#rclone-drive-setup`
+
+The interactive `gum` wizard walks teammates through:
+
+- decrypting the shared Google Drive config with the shared `SOPS_KEYSERVICE`
+- detecting whether host FUSE support is available
+- offering to install FUSE where possible, including macFUSE via Homebrew on macOS and `fuse3` via common Linux package managers
+- choosing the shared Drive mount path, defaulting to `~/darkmatter/shared`
+- optionally configuring an additional personal Google Drive remote with `rclone config`
+- choosing the personal Drive mount path, defaulting to `~/darkmatter/<username>`
+- mounting the shared and optional personal drives
+
+The shared Drive uses the encrypted team remote `darkmatter-google-drive`. The personal Drive uses a local rclone remote named `darkmatter-personal` in `~/.config/rclone/rclone.conf`.
+
+Mounted volume names are set from the chosen mount directory basename. For example, a shared mount at `~/darkmatter/shared` should appear as `shared` instead of `darkmatter-google-drive`.
+
+### `rclone-drive`
+
+Mount a Google Drive remote directly with `rclone`:
+
+`nix run github:darkmatter/nix#rclone-drive -- ~/path/to/dir`
+
+Arguments:
+
+- argument 1: local mount directory
+- optional argument 2: `rclone` remote or remote path, defaulting to `darkmatter-google-drive`
+
+Examples:
+
+`nix run github:darkmatter/nix#rclone-drive -- ~/Drive`
+
+`nix run github:darkmatter/nix#rclone-drive -- ~/Drive darkmatter-google-drive:Shared`
+
+The direct mount runs in the foreground. When you are done, stop the command with `Ctrl-C`; if needed, unmount manually with the usual command for your OS, such as `umount ~/path/to/dir` on macOS or `fusermount3 -u ~/path/to/dir` on Linux.
+
+### Shared Google Drive config
+
+Google Drive is supported by `rclone`, including `rclone mount`. Unlike S3 profile-based auth, Google Drive usually needs an OAuth-backed `rclone` remote configuration. This repo checks in the team config encrypted with SOPS.
+
+By default, the wrappers decrypt `ops/secrets/rclone-config.sops.yaml` at runtime with:
+
+`sops --decrypt --extract '["contents"]'`
+
+They write the decrypted config to a private runtime `rclone.conf`, export `RCLONE_CONFIG` to that generated file, and then start `rclone mount`.
+
+The wrappers also default:
+
+`SOPS_KEYSERVICE=tcp://sops-keyservice.tail6277a6.ts.net:5000`
+
+You can override either `SOPS_KEYSERVICE` or `RCLONE_CONFIG` in the environment if needed. If `RCLONE_CONFIG` is already set, the wrappers use that file instead of decrypting the checked-in SOPS config.
+
+To update the encrypted shared Google Drive config:
+
+1. Copy `ops/secrets/rclone-google-drive.conf.example` to a temporary local file outside git.
+2. Run `rclone config` and create or update a Google Drive remote named `darkmatter-google-drive`.
+3. Copy the generated `[darkmatter-google-drive]` block into your temporary file.
+4. Encrypt that file into the top-level `contents` key in `ops/secrets/rclone-config.sops.yaml`:
+
+`sops set ops/secrets/rclone-config.sops.yaml '["contents"]' "$(jq -Rs . < /path/to/filled-rclone.conf)"`
+
+The checked-in `ops/secrets/rclone-config.sops.yaml` file should contain the encrypted `rclone.conf` content under `contents` only. Do not commit the temporary plaintext config.
+
+### FUSE requirements
+
+`rclone mount` requires host FUSE support.
+
+On macOS, the wizard can install macFUSE with Homebrew:
+
+`brew install --cask macfuse`
+
+macOS may still require approving macFUSE in System Settings and rebooting before mounts work.
+
+On Linux, ensure FUSE is installed and available for your user. The wizard can install `fuse3` with common package managers where available.
+
 ## Shared Agent Skills
 
 Team-wide agent skills live in `github:darkmatter/agents` and are re-exported here so consumers only need one Darkmatter flake input:

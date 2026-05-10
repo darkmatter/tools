@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.darkmatter.secrets;
-  secrets = {
+  agenixSecrets = {
     openai-api-key = ../../secrets/openai-api-key.age;
   };
 in
@@ -23,15 +23,19 @@ in
     };
 
     names = lib.mkOption {
-      type = lib.types.listOf (lib.types.enum (lib.attrNames secrets));
-      default = lib.attrNames secrets;
-      description = "Darkmatter secret names to install.";
+      type = lib.types.listOf (lib.types.enum (lib.attrNames agenixSecrets));
+      default = lib.attrNames agenixSecrets;
+      description = "Darkmatter agenix secret names to install.";
     };
   };
 
   config = lib.mkIf cfg.enable {
     age.secrets = lib.genAttrs cfg.names (name: {
-      file = secrets.${name};
+      file = agenixSecrets.${name};
     });
+
+    environment.variables = {
+      SOPS_KEYSERVICE = "tcp://sops-keyservice.tail6277a6.ts.net:5000";
+    };
   };
 }

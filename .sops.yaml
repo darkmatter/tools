@@ -1,0 +1,8 @@
+keys:
+  - &cooper age1psa52j93p0t7rej4lyzeww6hzg9hh4ylxu6v30tcgag44apw8als2xg3ef
+  - &keyservice age16wuzuxnkcgfuxzvzgk5e5a5f6hhs386adjewyv54m9esr4yj6uuslpn6tp
+creation_rules:
+  - path_regex: .*
+    age:
+      - *cooper
+      - *keyservice
