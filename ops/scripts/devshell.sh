@@ -1,6 +1,7 @@
 # Shared devshell environment for this repository.
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-source "${SCRIPT_DIR}/lib.sh"
+GIT_ROOT="$(git rev-parse --show-toplevel)"
+
+source "$GIT_ROOT/ops/scripts/lib.sh"
 
 # Check dependencies, install if missing
 check_cmd gum

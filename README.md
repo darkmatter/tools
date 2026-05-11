@@ -1,8 +1,69 @@
-# Nix Tooling
+# Darkmatter Nix Devkit
 
-This directory contains all the nix modules that are used in this repo. We use [devenv](https://devenv.sh) which is a friendlier method to use Nix for non-Nix users, while still being powerful.
+This repo contains several utilities for the Darkmatter team - the goal being that all tools required to onboard and be productive can be encapsulated in a single Nix flake. 
 
-## Shared Flake Utilities
+## Quick Start
+
+To launch the main command menu, simply run:
+
+```bash
+nix run github:darkmatter/nix
+```
+
+The following is a list of the goals of this flake and its current status:
+
+## 1. Shared Secrets + Self-Serve Rekeys
+
+> Status: **Ready** ✅
+
+The secrets required to get set up are checked into this repo age-encrypted using SOPS. The only issue with SOPS is that it requires someone with the ability to decrypt the secrets to rekey in order to onboard new team members.
+
+**Accessing Secrets**
+
+In the `keys` directory, you can add your own age public key and then commit it back into this repo:
+
+```bash
+
+# 1a) Generate an age key from your existing SSH key
+$ nix run nixpkgs#ssh-to-age -- \
+  -i ~/.ssh/id_ed25519.pub \
+  >> ~/Library/Application\ Support/sops/age/keys.txt # put it here to have SOPS autodetect it
+
+# 1b) Alternatively, generate a key from scratch
+$ nix develop nixpkgs#age -c age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
+
+# Add your key to the repo
+echo "age.." > keys/team/<username>.pub
+
+git add keys/team/<username>.pub
+git commit -m "Add my age public key"
+
+# Push the changes to the repo
+git push
+```
+
+That will kick off a GitHub Actions workflow that will rekey the secrets using your key. Since the action has it's own key, it does not require human intervention, and piggybacks on our Github roles which are provisioned by our internal SSO (Authentik) which is convenient.
+
+After you pull, you'll find you can decrypt the secrets using your key.
+
+```bash
+sops decrypt secrets/<secret>.yaml
+```
+
+## 2. Shared Drive
+
+> Status: **Ready** ✅
+
+The `rclone setup` command will mount our shared Google Drive at `~/darkmatter/shared`, and mount a personal drive for you at `~/darkmatter/<username>`. The OAuth secrets are checked into this repo age-encrypted to simplify onboarding. The setup tool will have you log into your Google account in a browser to grant access.
+
+
+via `fuse3` and `rclone`, as well as a command menu for managing the shared Drive and other utilities.
+
+## 3. LLMs / Agent Utilities
+
+> TODO
+
+## Other Tools Included
 
 This flake exposes runnable utilities for the team.
 

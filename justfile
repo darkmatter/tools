@@ -3,7 +3,7 @@ mod rclone 'ops/just/rclone.justfile'
 
 # List all available recipes
 default:
-    just --list
+    ./ops/scripts/devshell.sh
 
 # ── Key generation ─────────────────────────────────────────────────────────────
 

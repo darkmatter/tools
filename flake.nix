@@ -115,15 +115,42 @@
               exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone/launch-agent.sh} "$@"
             '';
           };
+
+          darkmatterOnboard = pkgs.writeShellApplication {
+            name = "darkmatter";
+            runtimeInputs = [
+              pkgs.coreutils
+              pkgs.git
+              pkgs.gum
+              pkgs.nix
+            ];
+            text = ''
+              set -euo pipefail
+
+              export DARKMATTER_RCLONE_DRIVE_SETUP_BIN="${rcloneDriveSetup}/bin/rclone-drive-setup"
+              export DARKMATTER_RCLONE_DRIVE_LAUNCH_AGENT_BIN="${rcloneDriveLaunchAgent}/bin/rclone-drive-launch-agent"
+              exec ${pkgs.bash}/bin/bash ${./ops/scripts/onboard.sh} "$@"
+            '';
+          };
         in
         {
           packages = {
+            default = darkmatterOnboard;
+            darkmatter = darkmatterOnboard;
             rclone-google-drive = rcloneGoogleDrive;
             rclone-drive = rcloneGoogleDrive;
             rclone-drive-setup = rcloneDriveSetup;
             rclone-drive-launch-agent = rcloneDriveLaunchAgent;
           };
           apps = {
+            default = {
+              type = "app";
+              program = "${darkmatterOnboard}/bin/darkmatter";
+            };
+            darkmatter = {
+              type = "app";
+              program = "${darkmatterOnboard}/bin/darkmatter";
+            };
             rclone-google-drive = {
               type = "app";
               program = "${rcloneGoogleDrive}/bin/rclone-google-drive";

@@ -93,7 +93,7 @@ debug() {
 
 container() {
   wh=$(tput lines)
-  free_space=$((wh - 24))
+  free_space=$((wh - 32))
   per_side=$((free_space / 2))
   gum style \
     --border rounded --border-foreground "$DARK" \
