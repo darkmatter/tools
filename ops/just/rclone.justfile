@@ -36,6 +36,18 @@ mount-personal:
 mount-personal-at path:
     RCLONE_CONFIG=~/.config/rclone/rclone.conf nix run .#rclone-drive -- {{ path }} darkmatter-personal
 
+# Install a macOS LaunchAgent to automount the shared Google Drive at login.
+launch-agent-install:
+    nix run .#rclone-drive-launch-agent -- install
+
+# Show the macOS LaunchAgent status for the shared Google Drive automount.
+launch-agent-status:
+    nix run .#rclone-drive-launch-agent -- status
+
+# Remove the macOS LaunchAgent for the shared Google Drive automount.
+launch-agent-uninstall:
+    nix run .#rclone-drive-launch-agent -- uninstall
+
 # Show configured local rclone remotes.
 remotes:
     nix shell nixpkgs#rclone -c rclone listremotes

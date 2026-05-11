@@ -21,17 +21,21 @@ rekey:
 
 # ── rclone shortcuts ──────────────────────────────────────────────────────────
 
-# Run the interactive Google Drive setup wizard.
-rclone-setup:
+# Install the darkmatter team Google Drive
+install-drive:
     just rclone setup
 
-# Mount the shared Google Drive at the default path.
-rclone-mount:
-    just rclone mount
+# Install a macOS LaunchAgent to automount the shared Google Drive at login.
+install-drive-automount:
+    just rclone launch-agent-install
 
-# Mount the personal Google Drive at the default path.
-rclone-mount-personal:
-    just rclone mount-personal
+# Show the macOS LaunchAgent status for the shared Google Drive automount.
+drive-automount-status:
+    just rclone launch-agent-status
+
+# Remove the macOS LaunchAgent for the shared Google Drive automount.
+uninstall-drive-automount:
+    just rclone launch-agent-uninstall
 
 # Unmount a mounted drive path.
 rclone-unmount path:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# nix/ops/scripts/rclone-drive-setup.sh
+# nix/ops/scripts/rclone/setup.sh
 #
 # Interactive setup wizard for Darkmatter Google Drive mounts.
 #
@@ -17,11 +17,11 @@ export SOPS_KEYSERVICE
 SHARED_REMOTE="${RCLONE_SHARED_REMOTE:-darkmatter-google-drive}"
 PERSONAL_REMOTE="${RCLONE_PERSONAL_REMOTE:-darkmatter-personal}"
 PERSONAL_CONFIG="${RCLONE_PERSONAL_CONFIG:-$HOME/.config/rclone/rclone.conf}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # The flake wrapper should set this to a Nix-store path for the encrypted config.
 # Keep a repo-relative fallback so the script is also usable from a checkout.
 if [[ -z "${DARKMATTER_RCLONE_SOPS_FILE:-}" ]]; then
-  SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
   REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
   DARKMATTER_RCLONE_SOPS_FILE="$REPO_ROOT/ops/secrets/rclone-config.sops.yaml"
 fi
@@ -278,6 +278,32 @@ mount_drive() {
   ok "$label mounted at $target"
 }
 
+install_launch_agent() {
+  local mount_path="$1"
+  local remote_name="$2"
+  local launch_agent_script="${DARKMATTER_RCLONE_LAUNCH_AGENT_SCRIPT:-}"
+
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    subtle "Skipping automount setup: macOS LaunchAgents are only supported on macOS."
+    return 0
+  fi
+
+  if [[ -z "$launch_agent_script" ]]; then
+    launch_agent_script="$SCRIPT_DIR/launch-agent.sh"
+  fi
+
+  [[ -r "$launch_agent_script" ]] || die "LaunchAgent installer not found: $launch_agent_script"
+
+  header "6 · Automount at login"
+  if gum confirm "Install a macOS LaunchAgent to automount the shared Drive at login?"; then
+    gum spin >&2 --spinner dot --title "Installing shared Drive LaunchAgent..." -- \
+      bash "$launch_agent_script" install "$mount_path" "$remote_name"
+    ok "Shared Drive will automount at login"
+  else
+    subtle "Skipping automount setup. You can install it later with: just install-drive-automount"
+  fi
+}
+
 # ── Welcome ───────────────────────────────────────────────────────────────────
 ASCII_LOGO=$(cat <<'EOF'
        __              __                      __   __
@@ -357,7 +383,10 @@ if [[ "$configure_personal" -eq 1 ]]; then
   fi
 fi
 
-# ── 6. Summary ────────────────────────────────────────────────────────────────
+# ── 6. Automount ─────────────────────────────────────────────────────────────
+install_launch_agent "$shared_path" "$SHARED_REMOTE"
+
+# ── 7. Summary ────────────────────────────────────────────────────────────────
 header "✓ Setup complete"
 
 gum style >&2 --width 64 --padding "0 2" \

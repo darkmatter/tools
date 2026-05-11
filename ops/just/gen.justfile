@@ -7,6 +7,7 @@
 # Usage:
 #   just gen recipients
 
+# Generate age recipients for github org team members
 recipients:
     #!/usr/bin/env bash
     set -euo pipefail

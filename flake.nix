@@ -81,7 +81,7 @@
               set -euo pipefail
 
               export DARKMATTER_RCLONE_SOPS_FILE="${./ops/secrets/rclone-config.sops.yaml}"
-              exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone-google-drive.sh} "$@"
+              exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone/gdrive.sh} "$@"
             '';
           };
 
@@ -98,7 +98,21 @@
               set -euo pipefail
 
               export DARKMATTER_RCLONE_SOPS_FILE="${./ops/secrets/rclone-config.sops.yaml}"
-              exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone-drive-setup.sh} "$@"
+              export DARKMATTER_RCLONE_LAUNCH_AGENT_SCRIPT="${./ops/scripts/rclone/launch-agent.sh}"
+              exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone/setup.sh} "$@"
+            '';
+          };
+
+          rcloneDriveLaunchAgent = pkgs.writeShellApplication {
+            name = "rclone-drive-launch-agent";
+            runtimeInputs = [
+              pkgs.coreutils
+              pkgs.gnused
+            ];
+            text = ''
+              set -euo pipefail
+
+              exec ${pkgs.bash}/bin/bash ${./ops/scripts/rclone/launch-agent.sh} "$@"
             '';
           };
         in
@@ -107,6 +121,7 @@
             rclone-google-drive = rcloneGoogleDrive;
             rclone-drive = rcloneGoogleDrive;
             rclone-drive-setup = rcloneDriveSetup;
+            rclone-drive-launch-agent = rcloneDriveLaunchAgent;
           };
           apps = {
             rclone-google-drive = {
@@ -121,12 +136,21 @@
               type = "app";
               program = "${rcloneDriveSetup}/bin/rclone-drive-setup";
             };
+            rclone-drive-launch-agent = {
+              type = "app";
+              program = "${rcloneDriveLaunchAgent}/bin/rclone-drive-launch-agent";
+            };
           };
 
           devShells.default = pkgs.mkShell {
-            packages = [ pkgs.gum ];
+            packages = [
+              pkgs.gum
+              pkgs.jq
+              pkgs.just
+            ];
             shellHook = ''
-              source ${./ops/scripts/devshell-hook.sh}
+              export DARKMATTER_DEVSHELL_LIB=${./ops/scripts/lib.sh}
+              source ${./ops/scripts/devshell.sh}
             '';
           };
           # Enable agenix-rekey workflow generation for this repo
