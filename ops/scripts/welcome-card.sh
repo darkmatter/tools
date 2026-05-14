@@ -140,8 +140,13 @@ render_just_recipe_template() {
   recipe_command=$(printf '%s' "$2" | template_string)
 
   printf '{{ Foreground "62" %s }}\n' "$recipe_description"
-  # shellcheck disable=SC2016
-  printf '{{ Foreground "103" `  just ` }}{{ Foreground "156" %s }}\n\n' "$recipe_command"
+  if [ -z "$2" ]; then
+    # shellcheck disable=SC2016
+    printf '{{ Foreground "156" `  just` }}\n\n'
+  else
+    # shellcheck disable=SC2016
+    printf '{{ Foreground "103" `  just ` }}{{ Foreground "156" %s }}\n\n' "$recipe_command"
+  fi
 }
 
 just_recipe_data() {
@@ -183,24 +188,33 @@ generate_just_recipe_template() {
   local recipe_data="$1"
   shift
 
+  local count=0
+  local max=3
+
   if [ "$#" -eq 0 ]; then
-    printf '%s\n' "$recipe_data" \
-      | while IFS="$(printf '\t')" read -r recipe_description _recipe_name recipe_command; do
-          [ -n "$recipe_command" ] || continue
-          render_just_recipe_template "$recipe_description" "$recipe_command"
-        done
+    while IFS="$(printf '\t')" read -r recipe_description _recipe_name recipe_command; do
+      [ -n "$recipe_command" ] || continue
+      if [ "$count" -ge "$max" ]; then
+        break
+      fi
+      render_just_recipe_template "$recipe_description" "$recipe_command"
+      count=$((count + 1))
+    done <<< "$recipe_data"
     return 0
   fi
 
   for requested_recipe in "$@"; do
-    printf '%s\n' "$recipe_data" \
-      | while IFS="$(printf '\t')" read -r recipe_description recipe_name recipe_command; do
-          [ -n "$recipe_command" ] || continue
-          if [ "$requested_recipe" = "$recipe_name" ] || [ "$requested_recipe" = "$recipe_command" ]; then
-            render_just_recipe_template "$recipe_description" "$recipe_command"
-            break
-          fi
-        done
+    if [ "$count" -ge "$max" ]; then
+      break
+    fi
+    while IFS="$(printf '\t')" read -r recipe_description recipe_name recipe_command; do
+      [ -n "$recipe_command" ] || continue
+      if [ "$requested_recipe" = "$recipe_name" ] || [ "$requested_recipe" = "$recipe_command" ]; then
+        render_just_recipe_template "$recipe_description" "$recipe_command"
+        count=$((count + 1))
+        break
+      fi
+    done <<< "$recipe_data"
   done
 }
 
@@ -238,7 +252,7 @@ flake_status=$(status_indicator "$status_name" "$flake_state")
 meta_el=$(txtmeta "$flake_status")
 header_el=$(echo "$header_template" | gum format -t template)
 recipes_el=$(format_just_recipes)
-footer_el=$(render_just_recipe_template "$footer_description" "$footer_command" | gum format -t template)
+footer_el=$(render_just_recipe_template "$footer_description" "" | gum format -t template)
 
 wrapped=$(inner "$(printf '%s\n%s\n\n%s' "$header_el" "$recipes_el" "$footer_el")")
 body_el=$(container "$meta_el $wrapped")
