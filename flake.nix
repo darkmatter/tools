@@ -132,6 +132,22 @@
               exec ${pkgs.bash}/bin/bash ${./ops/scripts/onboard.sh} "$@"
             '';
           };
+
+          sopsWrapper = pkgs.writeShellApplication {
+            name = "sops";
+            runtimeInputs = [
+              pkgs.coreutils
+              pkgs.gnused
+              pkgs.sops
+            ];
+            text = ''
+              SOPS_AGE_RECIPIENTS="age16wuzuxnkcgfuxzvzgk5e5a5f6hhs386adjewyv54m9esr4yj6uuslpn6tp" \
+              SOPS_KEYSERVICE="tcp://sops-keyservice.tail6277a6.ts.net:5000" \
+              sops "''$@"
+            '';
+          };
+
+          dm = pkgs.callPackage ./dm.nix { };
         in
         {
           packages = {
@@ -141,6 +157,8 @@
             rclone-drive = rcloneGoogleDrive;
             rclone-drive-setup = rcloneDriveSetup;
             rclone-drive-launch-agent = rcloneDriveLaunchAgent;
+            sops = sopsWrapper;
+            dm = dm;
           };
           apps = {
             default = {
@@ -166,6 +184,14 @@
             rclone-drive-launch-agent = {
               type = "app";
               program = "${rcloneDriveLaunchAgent}/bin/rclone-drive-launch-agent";
+            };
+            sops = {
+              type = "app";
+              program = "${sopsWrapper}/bin/sops";
+            };
+            dm = {
+              type = "app";
+              program = "${dm}/bin/dm";
             };
           };
 
