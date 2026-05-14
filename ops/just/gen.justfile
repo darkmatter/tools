@@ -1,4 +1,4 @@
-# Generate age recipients for org members into keys/generated/recipients.json
+# Generate age recipients for org members into ops/keys/generated/recipients.json
 #
 # Fetches SSH public keys from GitHub for every member of the darkmatter org,
 # converts ed25519 keys to age recipients via ssh-to-age, and writes a single
@@ -12,7 +12,7 @@ recipients:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    outdir="{{ justfile_directory() }}/keys/generated"
+    outdir="{{ justfile_directory() }}/ops/keys/generated"
     outfile="$outdir/recipients.json"
     tmpfile="$outfile.tmp"
 

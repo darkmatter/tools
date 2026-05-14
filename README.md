@@ -33,9 +33,9 @@ $ nix run nixpkgs#ssh-to-age -- \
 $ nix develop nixpkgs#age -c age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
 
 # Add your key to the repo
-echo "age.." > keys/team/<username>.pub
+echo "age.." > ops/keys/team/<username>.pub
 
-git add keys/team/<username>.pub
+git add ops/keys/team/<username>.pub
 git commit -m "Add my age public key"
 
 # Push the changes to the repo

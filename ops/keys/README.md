@@ -16,10 +16,10 @@ age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
 Public key:  age123....
 
 # Put your public key in the team directory. Use your git username as the filename.
-echo "age123...." > keys/team/<username>.pub
+echo "age123...." > ops/keys/team/<username>.pub
 
 # Commit and push to update the encrypted secrets.
-git add keys/team/<username>.pub
+git add ops/keys/team/<username>.pub
 git commit -m "Add <username> key"
 git push
 
@@ -36,12 +36,12 @@ To automatically fetch age keys for every org member from their GitHub SSH keys:
 just gen recipients
 ```
 
-This writes `keys/generated/recipients.json`, keyed by GitHub username. It is
+This writes `ops/keys/generated/recipients.json`, keyed by GitHub username. It is
 imported by `sops.nix` when building `.sops.yaml`.
 
 ## Regenerating `.sops.yaml`
 
-After changing any keys (in `keys/default.nix`, `keys/generated/recipients.json`, or `keys/team/`):
+After changing any keys (in `ops/keys/default.nix`, `ops/keys/generated/recipients.json`, or `ops/keys/team/`):
 
 ```bash
 just rekey

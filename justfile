@@ -7,11 +7,11 @@ default:
 
 # ── Key generation ─────────────────────────────────────────────────────────────
 
-# Fetch age keys from GitHub for every org member → keys/generated/recipients.json
+# Fetch age keys from GitHub for every org member → ops/keys/generated/recipients.json
 gen-recipients:
     just gen recipients
 
-# Regenerate .sops.yaml from keys/default.nix + generated recipients + keys/team/
+# Regenerate .sops.yaml from ops/keys/default.nix + generated recipients + ops/keys/team/
 rekey:
     #!/usr/bin/env bash
     set -euo pipefail
