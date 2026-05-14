@@ -5,7 +5,7 @@
 set -euo pipefail
 
 LABEL="${DARKMATTER_RCLONE_LAUNCH_AGENT_LABEL:-com.darkmatter.rclone-drive}"
-FLAKE_REF="${DARKMATTER_RCLONE_FLAKE_REF:-github:darkmatter/nix}"
+FLAKE_REF="${DARKMATTER_RCLONE_FLAKE_REF:-github:darkmatter/tools}"
 SOPS_KEYSERVICE="${SOPS_KEYSERVICE:-tcp://sops-keyservice.tail6277a6.ts.net:5000}"
 DEFAULT_MOUNT_DIR="$HOME/darkmatter/shared"
 DEFAULT_REMOTE="darkmatter-google-drive"
@@ -21,7 +21,7 @@ Examples:
   rclone-drive-launch-agent status
 
 Environment:
-  DARKMATTER_RCLONE_FLAKE_REF       Flake to run. Default: github:darkmatter/nix
+  DARKMATTER_RCLONE_FLAKE_REF       Flake to run. Default: github:darkmatter/tools
   DARKMATTER_RCLONE_LAUNCH_AGENT_LABEL
                                     LaunchAgent label. Default: com.darkmatter.rclone-drive
   SOPS_KEYSERVICE                   SOPS keyservice URL.

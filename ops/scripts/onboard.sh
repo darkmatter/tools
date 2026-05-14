@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# First-run onboarding launcher for `nix run github:darkmatter/nix`.
+# First-run onboarding launcher for `nix run github:darkmatter/tools`.
 
 set -euo pipefail
 
-FLAKE_REF="${DARKMATTER_NIX_FLAKE_REF:-github:darkmatter/nix}"
+FLAKE_REF="${DARKMATTER_NIX_FLAKE_REF:-github:darkmatter/tools}"
 RCLONE_DRIVE_SETUP_BIN="${DARKMATTER_RCLONE_DRIVE_SETUP_BIN:-rclone-drive-setup}"
 RCLONE_DRIVE_LAUNCH_AGENT_BIN="${DARKMATTER_RCLONE_DRIVE_LAUNCH_AGENT_BIN:-rclone-drive-launch-agent}"
-DEFAULT_CLONE_PATH="$HOME/git/darkmatter/nix"
+DEFAULT_CLONE_PATH="$HOME/git/darkmatter/tools"
 
 expand_path() {
   case "$1" in
@@ -64,7 +64,7 @@ clone_repo() {
   fi
 
   mkdir -p "$(dirname "$target")"
-  git clone https://github.com/darkmatter/nix "$target"
+  git clone https://github.com/darkmatter/tools "$target"
 
   echo
   gum style --foreground 156 --bold "Cloned Darkmatter Nix Devkit"

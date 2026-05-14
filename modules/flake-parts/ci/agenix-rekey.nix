@@ -1,8 +1,8 @@
 # Agenix rekey GitHub Actions workflow module (flake-parts)
 # Automatically rekeys secrets when secrets.nix changes
 #
-# This is a flake-parts module that can be used independently of devenv.
-# It provides the workflow as a package that can be installed to .github/workflows/
+# This is a flake-parts module that provides the workflow as a package
+# that can be installed to .github/workflows/.
 #
 # Usage:
 #   imports = [ inputs.darkmatter.flakeModules.agenix-rekey ];
@@ -17,19 +17,22 @@
   lib,
   flake-parts-lib,
   ...
-}: let
+}:
+let
   inherit (lib) mkOption mkEnableOption types;
   inherit (flake-parts-lib) mkPerSystemOption;
-in {
+in
+{
   options.perSystem = mkPerSystemOption (
     {
       pkgs,
       config,
       ...
-    }: let
+    }:
+    let
       cfg = config.darkmatter.ci.agenix-rekey;
 
-      yaml = pkgs.formats.yaml {};
+      yaml = pkgs.formats.yaml { };
 
       workflow = {
         name = "Rekey Agenix Secrets";
@@ -39,7 +42,7 @@ in {
             branches = cfg.branches;
             paths = cfg.triggerPaths;
           };
-          workflow_dispatch = {};
+          workflow_dispatch = { };
         };
 
         permissions = {
@@ -49,50 +52,49 @@ in {
         jobs = {
           rekey = {
             runs-on = cfg.runsOn;
-            steps =
-              [
-                {
-                  name = "Checkout";
-                  uses = "actions/checkout@v4";
-                }
-                {
-                  name = "Install Nix";
-                  uses = "cachix/install-nix-action@v30";
-                  "with" = {
-                    github_access_token = "\${{ secrets.GITHUB_TOKEN }}";
-                  };
-                }
-              ]
-              ++ lib.optional cfg.cachix.enable {
-                name = "Setup Cachix";
-                uses = "cachix/cachix-action@v15";
+            steps = [
+              {
+                name = "Checkout";
+                uses = "actions/checkout@v4";
+              }
+              {
+                name = "Install Nix";
+                uses = "cachix/install-nix-action@v30";
                 "with" = {
-                  name = cfg.cachix.name;
-                  authToken = "\${{ secrets.${cfg.cachix.authTokenSecret} }}";
+                  github_access_token = "\${{ secrets.GITHUB_TOKEN }}";
                 };
               }
-              ++ [
-                {
-                  name = "Setup SSH key for agenix";
-                  run = "mkdir -p ~/.ssh && echo \"\${{ secrets.${cfg.sshKeySecret} }}\" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519";
-                }
-                {
-                  name = "Install agenix";
-                  run = "nix profile install github:ryantm/agenix";
-                }
-                {
-                  name = "Rekey secrets";
-                  run = "cd ${cfg.secretsDir} && agenix -r";
-                }
-                {
-                  name = "Commit and push changes";
-                  run = lib.concatStringsSep " && " [
-                    ''git config user.name "github-actions[bot]"''
-                    ''git config user.email "github-actions[bot]@users.noreply.github.com"''
-                    ''git diff --quiet ${cfg.secretsDir}/*.age || (git add ${cfg.secretsDir}/*.age && git commit -m "chore(secrets): rekey agenix secrets" && git push)''
-                  ];
-                }
-              ];
+            ]
+            ++ lib.optional cfg.cachix.enable {
+              name = "Setup Cachix";
+              uses = "cachix/cachix-action@v15";
+              "with" = {
+                name = cfg.cachix.name;
+                authToken = "\${{ secrets.${cfg.cachix.authTokenSecret} }}";
+              };
+            }
+            ++ [
+              {
+                name = "Setup SSH key for agenix";
+                run = "mkdir -p ~/.ssh && echo \"\${{ secrets.${cfg.sshKeySecret} }}\" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519";
+              }
+              {
+                name = "Install agenix";
+                run = "nix profile install github:ryantm/agenix";
+              }
+              {
+                name = "Rekey secrets";
+                run = "cd ${cfg.secretsDir} && agenix -r";
+              }
+              {
+                name = "Commit and push changes";
+                run = lib.concatStringsSep " && " [
+                  ''git config user.name "github-actions[bot]"''
+                  ''git config user.email "github-actions[bot]@users.noreply.github.com"''
+                  ''git diff --quiet ${cfg.secretsDir}/*.age || (git add ${cfg.secretsDir}/*.age && git commit -m "chore(secrets): rekey agenix secrets" && git push)''
+                ];
+              }
+            ];
           };
         };
       };
@@ -109,19 +111,20 @@ in {
         cp ${workflowFile} .github/workflows/${cfg.outputFileName}
         echo "Installed workflow to .github/workflows/${cfg.outputFileName}"
       '';
-    in {
+    in
+    {
       options.darkmatter.ci.agenix-rekey = {
         enable = mkEnableOption "GitHub Actions workflow for automatic agenix rekeying";
 
         branches = mkOption {
           type = types.listOf types.str;
-          default = ["main"];
+          default = [ "main" ];
           description = "Branches to trigger rekey on";
         };
 
         triggerPaths = mkOption {
           type = types.listOf types.str;
-          default = ["secrets/secrets.nix"];
+          default = [ "secrets/secrets.nix" ];
           description = "Paths that trigger the rekey workflow";
         };
 

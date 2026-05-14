@@ -4,7 +4,7 @@
 # Interactive setup wizard for Darkmatter Google Drive mounts.
 #
 # Run via:
-#   nix run github:darkmatter/nix#rclone-drive-setup
+#   nix run github:darkmatter/tools#rclone-drive-setup
 #
 # Requires: gum, rclone, sops, grep, mount, chmod, mkdir, basename, id
 # These should be provided by the flake wrapper.
@@ -77,7 +77,7 @@ check_cmd() {
     nix profile add "nixpkgs#$1"
     ok "$1"
   else
-    die "$1 not found — run this via: nix run github:darkmatter/nix#rclone-drive-setup"
+    die "$1 not found — run this via: nix run github:darkmatter/tools#rclone-drive-setup"
   fi
 }
 

@@ -51,7 +51,7 @@ check_cmd() {
     nix profile add "nixpkgs#$1"
     ok "$1"
   else
-    die "$1 not found — run this via: nix run github:darkmatter/nix#rclone-drive-setup"
+    die "$1 not found — run this via: nix run github:darkmatter/tools#rclone-drive-setup"
   fi
 }
 

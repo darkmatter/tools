@@ -7,7 +7,7 @@ This repo contains several utilities for the Darkmatter team - the goal being th
 To launch the main command menu, simply run:
 
 ```bash
-nix run github:darkmatter/nix
+nix run github:darkmatter/tools
 ```
 
 The following is a list of the goals of this flake and its current status:
@@ -71,7 +71,7 @@ This flake exposes runnable utilities for the team.
 
 Recommended first-time setup for Google Drive mounts:
 
-`nix run github:darkmatter/nix#rclone-drive-setup`
+`nix run github:darkmatter/tools#rclone-drive-setup`
 
 The interactive `gum` wizard walks teammates through:
 
@@ -91,7 +91,7 @@ Mounted volume names are set from the chosen mount directory basename. For examp
 
 Mount a Google Drive remote directly with `rclone`:
 
-`nix run github:darkmatter/nix#rclone-drive -- ~/path/to/dir`
+`nix run github:darkmatter/tools#rclone-drive -- ~/path/to/dir`
 
 Arguments:
 
@@ -100,9 +100,9 @@ Arguments:
 
 Examples:
 
-`nix run github:darkmatter/nix#rclone-drive -- ~/Drive`
+`nix run github:darkmatter/tools#rclone-drive -- ~/Drive`
 
-`nix run github:darkmatter/nix#rclone-drive -- ~/Drive darkmatter-google-drive:Shared`
+`nix run github:darkmatter/tools#rclone-drive -- ~/Drive darkmatter-google-drive:Shared`
 
 The direct mount runs in the foreground. When you are done, stop the command with `Ctrl-C`; if needed, unmount manually with the usual command for your OS, such as `umount ~/path/to/dir` on macOS or `fusermount3 -u ~/path/to/dir` on Linux.
 
@@ -151,7 +151,7 @@ Team-wide agent skills live in `github:darkmatter/agents` and are re-exported he
 
 ```nix
 {
-  inputs.darkmatter.url = "github:darkmatter/nix";
+  inputs.darkmatter.url = "github:darkmatter/tools";
 
   imports = [
     inputs.darkmatter.homeManagerModules.default
@@ -180,7 +180,7 @@ For a registry entry named `anthropic-skills`:
 ```nix
 {
   inputs = {
-    darkmatter.url = "github:darkmatter/nix";
+    darkmatter.url = "github:darkmatter/tools";
     anthropic-skills.url = "flake:anthropic-skills";
 
     home-manager.url = "github:nix-community/home-manager";
@@ -283,21 +283,21 @@ One-time setup &mdash; create the rclone remote (`darkmatter-r2`):
 ```bash
 # Will prompt for account id / access key / secret if not in env.
 R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
-  nix run github:darkmatter/nix#configure-darkmatter-r2
+  nix run github:darkmatter/tools#configure-darkmatter-r2
 ```
 
 Mount everything (or a single bucket):
 
 ```bash
-nix run github:darkmatter/nix#mount-darkmatter
-nix run github:darkmatter/nix#mount-darkmatter -- team
+nix run github:darkmatter/tools#mount-darkmatter
+nix run github:darkmatter/tools#mount-darkmatter -- team
 ```
 
 Unmount:
 
 ```bash
-nix run github:darkmatter/nix#unmount-darkmatter
-nix run github:darkmatter/nix#unmount-darkmatter -- personal
+nix run github:darkmatter/tools#unmount-darkmatter
+nix run github:darkmatter/tools#unmount-darkmatter -- personal
 ```
 
 Override the mount root for a single invocation with `DARKMATTER_BASE_DIR=/some/path`.

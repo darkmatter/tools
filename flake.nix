@@ -148,6 +148,16 @@
           };
 
           dm = pkgs.callPackage ./dm.nix { };
+
+          welcome = pkgs.writeShellApplication {
+            name = "darkmatter-welcome";
+            runtimeInputs = [
+              pkgs.gum
+              pkgs.jq
+              pkgs.just
+            ];
+            text = builtins.readFile ./ops/scripts/welcome-card.sh;
+          };
         in
         {
           packages = {
@@ -158,7 +168,7 @@
             rclone-drive-setup = rcloneDriveSetup;
             rclone-drive-launch-agent = rcloneDriveLaunchAgent;
             sops = sopsWrapper;
-            dm = dm;
+            inherit dm welcome;
           };
           apps = {
             default = {
@@ -192,6 +202,10 @@
             dm = {
               type = "app";
               program = "${dm}/bin/dm";
+            };
+            welcome = {
+              type = "app";
+              program = "${welcome}/bin/darkmatter-welcome";
             };
           };
 

@@ -7,8 +7,8 @@ CI will re-encrypt using your key, and then you can pull and decrypt the secrets
 
 ```bash
 # clone the repository
-git clone git@github.com:darkmatter/nix
-cd nix
+git clone git@github.com:darkmatter/tools
+cd tools
 
 # (Optional) Generate a key: It's important to use this exact path,
 # otherwise sops won't automatically detect your key.

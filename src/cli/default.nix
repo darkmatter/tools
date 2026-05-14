@@ -22,6 +22,6 @@ pkgs.writeShellApplication {
         ;;
     esac
 
-    exec nix run "github:darkmatter/nix#$cmd" -- "$@"
+    exec nix run "github:darkmatter/tools#$cmd" -- "$@"
   '';
 }

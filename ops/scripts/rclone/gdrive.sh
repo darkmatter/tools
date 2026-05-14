@@ -21,8 +21,8 @@ generated_config=0
 
 usage() {
   echo "Usage: rclone-google-drive <mount-dir> [remote-or-remote-path]" >&2
-  echo "Example: nix run github:darkmatter/nix#rclone-drive -- ~/Drive darkmatter-google-drive" >&2
-  echo "         nix run github:darkmatter/nix#rclone-drive -- ~/darkmatter/$USER darkmatter-personal" >&2
+  echo "Example: nix run github:darkmatter/tools#rclone-drive -- ~/Drive darkmatter-google-drive" >&2
+  echo "         nix run github:darkmatter/tools#rclone-drive -- ~/darkmatter/$USER darkmatter-personal" >&2
   echo "Default RCLONE_CONFIG: decrypted from the checked-in SOPS config at runtime" >&2
   echo "Personal remotes from ~/.config/rclone/rclone.conf are merged in automatically" >&2
 }

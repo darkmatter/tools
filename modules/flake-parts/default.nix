@@ -1,6 +1,5 @@
 # Flake-parts modules - import these at the flake level
-# These modules are generic and don't require devenv. They work with
-# any flake-parts based flake.
+# These modules are generic and work with any flake-parts based flake.
 #
 # Usage in consuming flakes:
 #   # flake.nix
@@ -13,7 +12,8 @@
 #       # imports = [ inputs.darkmatter.flakeModules.agenix-rekey ];
 #     };
 #
-{...}: {
+{ ... }:
+{
   imports = [
     ./ci
     ./r2.nix
