@@ -49,11 +49,11 @@
         "agent-skills": "agent-skills"
       },
       "locked": {
-        "lastModified": 1778379463,
-        "narHash": "sha256-dFyUsA6z9QhYAsdPGaGQuzx4L6rdxaMpWj/WD8rdKII=",
+        "lastModified": 1778660296,
+        "narHash": "sha256-xzEfQgFbj5klfc0ey4ppoFwocZDWj26VPXbRuVZrXXA=",
         "owner": "darkmatter",
         "repo": "agents",
-        "rev": "d3da976763a67f7bd627d8ef0a9fd61db9136b9b",
+        "rev": "d4ac087647c668547a0214d1647175ccef6dc80e",
         "type": "github"
       },
       "original": {
