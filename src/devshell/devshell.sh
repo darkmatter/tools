@@ -1,7 +1,7 @@
 # Shared devshell environment for this repository.
 GIT_ROOT="$(git rev-parse --show-toplevel)"
 
-source "$GIT_ROOT/ops/scripts/lib.sh"
+source "$DARKMATTER_DEVSHELL_LIB"
 
 # Check dependencies, install if missing
 check_cmd gum

@@ -1,8 +1,9 @@
 {
-  description = "Darkmatter devshell - reusable Nix modules for development environments";
+  description = "Darkmatter tools";
 
   inputs = {
-    agenix.url = "github:ryantm/agenix";
+    input-branches.url = "github:mightyiam/input-branches";
+    github-actions-nix.url = "github:synapdeck/github-actions-nix";
     darkmatter-agents.url = "github:darkmatter/agents";
     darkmatter-agents.inputs.agent-skills.inputs.nixpkgs.follows = "nixpkgs";
     darkmatter-agents.inputs.agent-skills.inputs.home-manager.follows = "home-manager";
@@ -14,7 +15,7 @@
 
   outputs =
     inputs@{
-      agenix,
+      github-actions-nix,
       darkmatter-agents,
       flake-parts,
       self,
@@ -29,6 +30,7 @@
 
       imports = [
         inputs.flake-parts.flakeModules.modules
+        inputs.github-actions-nix.flakeModule
         ./flake/apps.nix
         ./flake/packages.nix
         ./flake/devshells.nix
@@ -40,7 +42,7 @@
         # Usage: imports = [ inputs.darkmatter.flakeModules.default ];
         flakeModules = {
           default = ./flake/modules/flake-parts/default.nix;
-          agenix-rekey = ./flake/modules/flake-parts/agenix-rekey.nix;
+          sops-rekey = ./flake/modules/flake-parts/sops-rekey.nix;
           r2 = ./flake/modules/flake-parts/r2.nix;
         };
         homeManagerModules = {
@@ -48,25 +50,29 @@
           agents = import ./flake/modules/home-manager/agents.nix { inherit darkmatter-agents; };
         };
         nixosModules = {
-          default = import ./flake/modules/nixos/default.nix { inherit agenix; };
-          secrets = import ./flake/modules/nixos/default.nix { inherit agenix; };
+          default = import ./flake/modules/nixos/default.nix { };
         };
         darwinModules = {
-          default = import ./flake/modules/darwin/default.nix { inherit agenix; };
-          secrets = import ./flake/modules/darwin/default.nix { inherit agenix; };
+          default = import ./flake/modules/darwin/default.nix { };
+        };
+        input-branches.inputs = {
+          skills = {
+            upsstream.url = "github:darkmatter/skills";
+            upstream.ref = "main";
+          };
         };
       };
 
-      perSystem = {
-        # Enable agenix-rekey workflow generation for this repo
-        darkmatter.ci.agenix-rekey = {
-          enable = true;
-          cachix.enable = true;
-          cachix.name = "darkmatter";
+      perSystem =
+        { config, ... }:
+        {
+          # Test sops-rekey workflow generation
+          darkmatter.ci.sops-rekey.enable = true;
+          packages.sops-rekey-workflow = config.githubActions.workflowsDir;
+
+          # Expose mount-darkmatter / unmount-darkmatter / configure-darkmatter-r2
+          # apps that mount Cloudflare R2 buckets at ~/darkmatter/{public,team,personal}.
+          darkmatter.r2.enable = true;
         };
-        # Expose mount-darkmatter / unmount-darkmatter / configure-darkmatter-r2
-        # apps that mount Cloudflare R2 buckets at ~/darkmatter/{public,team,personal}.
-        darkmatter.r2.enable = true;
-      };
     };
 }

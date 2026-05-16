@@ -95,6 +95,9 @@ container() {
   wh=$(tput lines)
   free_space=$((wh - 32))
   per_side=$((free_space / 2))
+  if [ "$per_side" -lt 0 ]; then
+    per_side=0
+  fi
   gum style \
     --border rounded --border-foreground "$DARK" \
     --background "$BG" \

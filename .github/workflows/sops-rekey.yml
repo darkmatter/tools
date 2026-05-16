@@ -1,0 +1,98 @@
+name: Rekey SOPS Secrets
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .sops.yaml
+      - sops.nix
+      - ops/keys/**
+  workflow_dispatch:
+    inputs:
+      files:
+        description: Whitespace-separated encrypted files to rekey. Leave blank to discover all SOPS files.
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sops-rekey-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rekey:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure SOPS identity
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$HOME/.config/sops/age"
+
+          if [ -n "${{ secrets.SOPS_AGE_KEY }}" ]; then
+            printf '%s\n' "${{ secrets.SOPS_AGE_KEY }}" > "$HOME/.config/sops/age/keys.txt"
+            chmod 600 "$HOME/.config/sops/age/keys.txt"
+            echo "SOPS_AGE_KEY_FILE=$HOME/.config/sops/age/keys.txt" >> "$GITHUB_ENV"
+          else
+            echo "Missing SOPS_AGE_KEY repository secret." >&2
+            echo "Add an age identity that can decrypt the current secrets so CI can rekey for new recipients." >&2
+            exit 1
+          fi
+
+      - name: Regenerate SOPS config
+        run: |
+          set -euo pipefail
+          nix eval --raw -f ./sops.nix yaml > .sops.yaml
+
+      - name: Rekey secrets
+        env:
+          INPUT_FILES: ${{ github.event.inputs.files }}
+        run: |
+          set -euo pipefail
+
+          files="${INPUT_FILES:-}"
+
+          if [ -z "$files" ]; then
+            files="$(git grep -l "sops:" -- . '*.yaml' '*.yml' '*.json' '*.env' '*.ini' 2>/dev/null || true)"
+          fi
+
+          if [ -z "$files" ]; then
+            echo "No SOPS encrypted files found."
+            exit 0
+          fi
+
+          for file in $files; do
+            if [ ! -f "$file" ]; then
+              echo "Encrypted file not found: $file" >&2
+              exit 1
+            fi
+
+            echo "Rekeying $file"
+            nix run nixpkgs#sops -- updatekeys -y "$file"
+          done
+
+      - name: Commit and push changes
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            echo "No rekey changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore(secrets): rekey sops secrets"
+          git push
