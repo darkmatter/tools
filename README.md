@@ -181,7 +181,7 @@ Personal skills can stay outside git and be layered in locally:
 
 Personal skills are installed with the `personal/*` prefix.
 
-### Layer registry skills into Claude, Codex, OpenCode, Cursor, and Zed
+### Layer registry skills into Claude, Codex, Cursor, and Zed
 
 The default module can be combined with any `agent-skills-nix` catalog. Add the catalog as a flake input, pass `inputs` to Home Manager, then add a source and enable the targets you want.
 
@@ -234,8 +234,11 @@ Then configure the additional catalog in `home.nix`:
 
     targets.claude.enable = true;
     targets.codex.enable = true;
-    targets.opencode.enable = true;
     targets.cursor.enable = true;
+    # `targets.opencode.enable` is intentionally omitted — OpenCode
+    # skills are managed by the Darkmatter preset via the canonical
+    # `programs.opencode.skills` option. See the OpenCode section
+    # below.
 
     # `agent-skills-nix` does not currently define a built-in Zed target,
     # but custom targets work the same way.
@@ -248,7 +251,23 @@ Then configure the additional catalog in `home.nix`:
 }
 ```
 
-This installs Darkmatter preset skills under `darkmatter/*` plus the selected registry skills under `anthropic/*` into Claude, Codex, OpenCode, Cursor, and Zed.
+This installs Darkmatter preset skills under `darkmatter/*` plus the selected registry skills under `anthropic/*` into Claude, Codex, Cursor, and Zed.
+
+### OpenCode
+
+The Darkmatter preset configures OpenCode through Home Manager's canonical `programs.opencode` module. Team-wide `darkmatter/*` skills (and any directory set via `darkmatter.agentSkills.personalPath`) flow into `~/.config/opencode/skills/` automatically — `programs.agent-skills.targets.opencode` should be left unset to avoid clobbering those per-skill entries.
+
+Layering third-party `agent-skills-nix` sources (e.g. `anthropic-skills`) into OpenCode is a known follow-up. Until that lands, OpenCode receives only the curated Darkmatter skills; layer additional catalogs into Claude/Codex/Cursor.
+
+If you manage the `opencode` binary outside Home Manager (Homebrew, manual install, etc), skip the package install:
+
+```nix
+{
+  darkmatter.agentSkills.opencode.installPackage = false;
+}
+```
+
+Config files and skills are still installed when this is `false`.
 
 ## Shared Secrets
 
