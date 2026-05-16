@@ -28,16 +28,16 @@
         "agent-skills": "agent-skills"
       },
       "locked": {
-        "lastModified": 1778938334,
-        "narHash": "sha256-MV/q42GSW9kPDBokgML/n4LYAel1xAxBgLdhUbhn8Mg=",
+        "lastModified": 1778940200,
+        "narHash": "sha256-IElLs9qUAagHEv29UJMnUtmwC50Vn0cn2TPGMwopehA=",
         "owner": "darkmatter",
-        "repo": "agents",
-        "rev": "f90abce0a352be1512752b5eb8e76103f8e5353a",
+        "repo": "skills",
+        "rev": "b8bcdaf862414902a290f23b02765a884033f88f",
         "type": "github"
       },
       "original": {
         "owner": "darkmatter",
-        "repo": "agents",
+        "repo": "skills",
         "type": "github"
       }
     },
@@ -217,11 +217,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1778443072,
-        "narHash": "sha256-zi7/fsqM/kFdNuED//4WOCUtezGtKKqRNORjMvfwjnA=",
+        "lastModified": 1778869304,
+        "narHash": "sha256-30sZNZoA1cqF5JNO9fVX+wgiQYjB7HJqqJ4ztCDeBZE=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "da5ad661ba4e5ef59ba743f0d112cbc30e474f32",
+        "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
         "type": "github"
       },
       "original": {

@@ -4,7 +4,7 @@
   inputs = {
     input-branches.url = "github:mightyiam/input-branches";
     github-actions-nix.url = "github:synapdeck/github-actions-nix";
-    darkmatter-agents.url = "github:darkmatter/agents";
+    darkmatter-agents.url = "github:darkmatter/skills";
     darkmatter-agents.inputs.agent-skills.inputs.nixpkgs.follows = "nixpkgs";
     darkmatter-agents.inputs.agent-skills.inputs.home-manager.follows = "home-manager";
     flake-parts.url = "github:hercules-ci/flake-parts";
