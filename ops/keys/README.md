@@ -5,27 +5,40 @@ CI will re-encrypt using your key, and then you can pull and decrypt the secrets
 
 ## Adding your key
 
+Use the self-service join utility:
+
 ```bash
-# clone the repository
+nix run github:darkmatter/tools#sops-join
+```
+
+The utility will:
+
+1. Find or clone your local `darkmatter/tools` checkout.
+2. Generate a personal age identity and append it to the standard SOPS age key file.
+3. Write the public recipient to `ops/keys/team/<username>.pub`.
+4. Regenerate `.sops.yaml` from `sops.nix`.
+5. Optionally commit and push the recipient change.
+
+Pushing the commit triggers the SOPS rekey workflow. CI uses the repository `SOPS_AGE_KEY` secret to decrypt the current files, runs `sops updatekeys`, and commits the rekeyed files back. After CI finishes:
+
+```bash
+git pull
+sops decrypt ops/secrets/rclone-config.sops.yaml >/dev/null && echo "Decrypted successfully"
+```
+
+If you are on the Darkmatter Tailscale network, the keyservice may already let you decrypt without a personal recipient. Add your own recipient anyway so access is explicit, auditable, and does not depend on the keyservice being reachable. Use separate recipients for service/agent identities instead of reusing a human key.
+
+Manual equivalent:
+
+```bash
 git clone git@github.com:darkmatter/tools
 cd tools
-
-# (Optional) Generate a key: It's important to use this exact path,
-# otherwise sops won't automatically detect your key.
 age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
-Public key:  age123....
-
-# Put your public key in the team directory. Use your git username as the filename.
-echo "age123...." > ops/keys/team/<username>.pub
-
-# Commit and push to update the encrypted secrets.
-git add ops/keys/team/<username>.pub
-git commit -m "Add <username> key"
+echo "age1..." > ops/keys/team/<username>.pub
+nix eval --raw -f ./sops.nix yaml > .sops.yaml
+git add ops/keys/team/<username>.pub .sops.yaml
+git commit -m "chore(secrets): add sops recipient for <username>"
 git push
-
-# Wait for CI to re-encrypt the secrets, then pull and decrypt.
-git pull
-sops decrypt ops/secrets/rclone-config.sops.yaml && echo "Decrypted successfully"
 ```
 
 ## Generating keys from GitHub

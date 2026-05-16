@@ -6,14 +6,15 @@ set -euo pipefail
 FLAKE_REF="${DARKMATTER_NIX_FLAKE_REF:-github:darkmatter/tools}"
 RCLONE_DRIVE_SETUP_BIN="${DARKMATTER_RCLONE_DRIVE_SETUP_BIN:-rclone-drive-setup}"
 RCLONE_DRIVE_LAUNCH_AGENT_BIN="${DARKMATTER_RCLONE_DRIVE_LAUNCH_AGENT_BIN:-rclone-drive-launch-agent}"
+SOPS_JOIN_BIN="${DARKMATTER_SOPS_JOIN_BIN:-sops-join}"
 DEFAULT_CLONE_PATH="$HOME/git/darkmatter/tools"
 
 expand_path() {
   case "$1" in
-    ~)
+    "~")
       printf '%s\n' "$HOME"
       ;;
-    ~/*)
+    "~/"*)
       printf '%s/%s\n' "$HOME" "${1#\~/}"
       ;;
     *)
@@ -48,6 +49,7 @@ show_commands() {
   show_command_row "Start this launcher" "nix run" "$FLAKE_REF"
   show_command_row "Run the Google Drive setup wizard directly" "nix run" "$FLAKE_REF#rclone-drive-setup"
   show_command_row "Install the shared Drive automount directly" "nix run" "$FLAKE_REF#rclone-drive-launch-agent -- install"
+  show_command_row "Join shared secrets as a SOPS recipient" "nix run" "$FLAKE_REF#sops-join"
   show_command_row "Enter a temporary dev shell without cloning" "nix develop" "$FLAKE_REF"
 }
 
@@ -85,6 +87,7 @@ main() {
     gum choose \
       "Install shared Google Drive" \
       "Install shared Drive automount" \
+      "Join shared secrets" \
       "Clone this repo" \
       "Enter temporary dev shell" \
       "Show commands" \
@@ -97,6 +100,9 @@ main() {
       ;;
     "Install shared Drive automount")
       exec "$RCLONE_DRIVE_LAUNCH_AGENT_BIN" install
+      ;;
+    "Join shared secrets")
+      exec "$SOPS_JOIN_BIN"
       ;;
     "Clone this repo")
       clone_repo

@@ -1,6 +1,6 @@
 { pkgs, ... }:
 pkgs.writeShellApplication {
-  name = "dm";
+  name = "dm"; meta.description = "The dm command";
 
   runtimeInputs = [
     pkgs.nix
@@ -19,6 +19,9 @@ pkgs.writeShellApplication {
     case "$cmd" in
       sop)
         cmd=sops
+        ;;
+      sops-join|join-secrets|join-sops)
+        cmd=sops-join
         ;;
     esac
 

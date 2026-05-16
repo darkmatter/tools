@@ -17,6 +17,7 @@ export SOPS_KEYSERVICE
 SHARED_REMOTE="${RCLONE_SHARED_REMOTE:-darkmatter-google-drive}"
 PERSONAL_REMOTE="${RCLONE_PERSONAL_REMOTE:-darkmatter-personal}"
 PERSONAL_CONFIG="${RCLONE_PERSONAL_CONFIG:-$HOME/.config/rclone/rclone.conf}"
+LOCAL_RCLONE_CONFIG="${RCLONE_LOCAL_CONFIG:-$HOME/.config/rclone/rclone.conf}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # The flake wrapper should set this to a Nix-store path for the encrypted config.
@@ -124,12 +125,157 @@ decrypt_shared_config() {
 
   chmod 600 "$shared_config"
 
+  # Merge in the user's local rclone config so the checked-in shared config can
+  # stay tokenless while each teammate keeps their own OAuth token locally.
+  if [[ -r "$LOCAL_RCLONE_CONFIG" ]]; then
+    echo "" >> "$shared_config"
+    cat "$LOCAL_RCLONE_CONFIG" >> "$shared_config"
+  fi
+
   if ! rclone --config "$shared_config" listremotes | grep -Fxq "$SHARED_REMOTE:"; then
     die "Shared rclone config does not define remote '$SHARED_REMOTE'"
   fi
 
   ok "Shared config decrypted"
   printf '%s\n' "$shared_config"
+}
+
+extract_config_value() {
+  local config_file="$1"
+  local remote="$2"
+  local key="$3"
+  local line
+  local value=""
+
+  while IFS= read -r line; do
+    case "$line" in
+      "$key"\ =*)
+        value="${line#"$key = "}"
+        ;;
+    esac
+  done < <(rclone --config "$config_file" config show "$remote")
+
+  printf '%s\n' "$value"
+}
+
+extract_token() {
+  extract_config_value "$1" "$2" token
+}
+
+reconnect_remote() {
+  local config_file="$1"
+  local remote="$2"
+  local team_drive
+
+  team_drive="$(extract_config_value "$config_file" "$remote" team_drive)"
+
+  if [[ -n "$team_drive" ]]; then
+    rclone --config "$config_file" --auto-confirm --drive-team-drive "$team_drive" config reconnect "$remote:"
+  else
+    rclone --config "$config_file" --auto-confirm config reconnect "$remote:"
+  fi
+}
+
+write_local_token() {
+  local local_config="$1"
+  local remote="$2"
+  local token="$3"
+  local local_dir
+  local tmp
+  local line
+  local in_section=0
+  local section_found=0
+  local token_written=0
+
+  local_dir="$(dirname -- "$local_config")"
+  mkdir -p "$local_dir"
+  chmod 700 "$local_dir"
+
+  tmp="$local_config.tmp.$$"
+  umask 077
+
+  if [[ -r "$local_config" ]]; then
+    : > "$tmp"
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      case "$line" in
+        \[*\])
+          if [[ "$in_section" -eq 1 && "$token_written" -eq 0 ]]; then
+            printf 'token = %s\n' "$token" >> "$tmp"
+            token_written=1
+          fi
+
+          if [[ "$line" == "[$remote]" ]]; then
+            in_section=1
+            section_found=1
+            token_written=0
+          else
+            in_section=0
+          fi
+
+          printf '%s\n' "$line" >> "$tmp"
+          ;;
+        token\ =*)
+          if [[ "$in_section" -eq 1 ]]; then
+            printf 'token = %s\n' "$token" >> "$tmp"
+            token_written=1
+          else
+            printf '%s\n' "$line" >> "$tmp"
+          fi
+          ;;
+        *)
+          printf '%s\n' "$line" >> "$tmp"
+          ;;
+      esac
+    done < "$local_config"
+
+    if [[ "$in_section" -eq 1 && "$token_written" -eq 0 ]]; then
+      printf 'token = %s\n' "$token" >> "$tmp"
+    fi
+
+    if [[ "$section_found" -eq 0 ]]; then
+      printf '\n[%s]\n' "$remote" >> "$tmp"
+      printf 'type = drive\n' >> "$tmp"
+      printf 'token = %s\n' "$token" >> "$tmp"
+    fi
+  else
+    {
+      printf '[%s]\n' "$remote"
+      printf 'type = drive\n'
+      printf 'token = %s\n' "$token"
+    } > "$tmp"
+  fi
+
+  chmod 600 "$tmp"
+  mv "$tmp" "$local_config"
+}
+
+ensure_shared_remote_token() {
+  local shared_config="$1"
+  local token
+
+  token="$(extract_token "$shared_config" "$SHARED_REMOTE")"
+  if [[ -n "$token" ]]; then
+    ok "Shared Google Drive OAuth token found in local config"
+    return 0
+  fi
+
+  warn "The shared Google Drive config is tokenless on this machine."
+  gum style >&2 --faint "The browser OAuth flow will authenticate your Google account and save only your token to $LOCAL_RCLONE_CONFIG."
+
+  if ! gum confirm "Launch browser OAuth flow for '$SHARED_REMOTE' now?"; then
+    die "Shared Drive OAuth token is required. You can run: nix run github:darkmatter/tools#rclone-drive -- reconnect $SHARED_REMOTE"
+  fi
+
+  reconnect_remote "$shared_config" "$SHARED_REMOTE"
+
+  token="$(extract_token "$shared_config" "$SHARED_REMOTE")"
+  if [[ -z "$token" ]]; then
+    die "OAuth reconnect completed, but no token was found for '$SHARED_REMOTE'."
+  fi
+
+  write_local_token "$LOCAL_RCLONE_CONFIG" "$SHARED_REMOTE" "$token"
+  ok "Saved per-user OAuth token for '$SHARED_REMOTE' to $LOCAL_RCLONE_CONFIG"
 }
 
 # ── FUSE helpers ──────────────────────────────────────────────────────────────
@@ -272,8 +418,11 @@ mount_drive() {
     warn "Attempting mount even though FUSE was not detected."
   fi
 
-  gum spin >&2 --spinner dot --title "Mounting $label at $target..." -- \
-    rclone --config "$config_file" mount "$remote_name:" "$target" --daemon --vfs-cache-mode=writes --volname "$volname"
+  if ! gum spin >&2 --spinner dot --title "Mounting $label at $target..." -- \
+    rclone --config "$config_file" mount "$remote_name:" "$target" --daemon --vfs-cache-mode=writes --volname "$volname"; then
+    warn "$label did not mount successfully."
+    return 1
+  fi
 
   ok "$label mounted at $target"
 }
@@ -365,6 +514,7 @@ fi
 header "4 · Shared Drive"
 
 shared_config="$(decrypt_shared_config)"
+ensure_shared_remote_token "$shared_config"
 
 gum spin >&2 --spinner dot --title "Checking shared Google Drive remote..." -- \
   rclone --config "$shared_config" about "$SHARED_REMOTE:" >/dev/null
@@ -377,7 +527,9 @@ if [[ "$configure_personal" -eq 1 ]]; then
   header "5 · Personal Drive"
 
   if personal_config="$(ensure_personal_remote)"; then
-    mount_drive "Personal Google Drive" "$personal_config" "$PERSONAL_REMOTE" "$personal_path"
+    if ! mount_drive "Personal Google Drive" "$personal_config" "$PERSONAL_REMOTE" "$personal_path"; then
+      warn "Personal Drive was not mounted."
+    fi
   else
     warn "Personal Drive was not mounted."
   fi

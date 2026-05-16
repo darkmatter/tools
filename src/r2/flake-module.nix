@@ -17,7 +17,7 @@
 #
 #   nix run .#configure-darkmatter-r2   # one-time rclone remote setup
 #   nix run .#mount-darkmatter          # mount all configured buckets
-#   nix run .#mount-darkmatter -- team  # mount a single bucket by name
+#   nix run .#mount-darkmatter -- lfs   # mount a single bucket by name
 #   nix run .#unmount-darkmatter        # unmount everything
 {
   lib,
@@ -51,6 +51,19 @@ in
               default = name;
               description = "Subdirectory under `baseDir` where the bucket is mounted.";
             };
+            vfsCacheMode = mkOption {
+              type = types.nullOr (types.enum [
+                "off"
+                "minimal"
+                "writes"
+                "full"
+              ]);
+              default = null;
+              description = ''
+                Per-mount `--vfs-cache-mode`. When unset, the global
+                `darkmatter.r2.vfsCacheMode` value is used.
+              '';
+            };
             extraMountArgs = mkOption {
               type = types.listOf types.str;
               default = [ ];
@@ -70,6 +83,7 @@ in
           bucket=${lib.escapeShellArg m.bucket}
           subdir=${lib.escapeShellArg m.subdir}
           target="$base/$subdir"
+          vfs_cache_mode=${lib.escapeShellArg (if m.vfsCacheMode == null then cfg.vfsCacheMode else m.vfsCacheMode)}
           extra_args=(${shellArgs m.extraMountArgs})
           ;;
       '';
@@ -91,7 +105,7 @@ in
       knownNames = shellArgs mountNames;
 
       mountScript = pkgs.writeShellApplication {
-        name = "mount-darkmatter";
+        name = "mount-darkmatter"; meta.description = "Mount Cloudflare R2 buckets locally via rclone";
         runtimeInputs = [
           pkgs.rclone
           pkgs.coreutils
@@ -119,6 +133,7 @@ in
           for name in "''${targets[@]}"; do
             bucket=""
             target=""
+            vfs_cache_mode=${lib.escapeShellArg cfg.vfsCacheMode}
             extra_args=()
             case "$name" in
               ${mountCases}
@@ -138,7 +153,7 @@ in
             echo "[$name] mounting $remote:$bucket -> $target"
             rclone mount "$remote:$bucket" "$target" \
               --daemon \
-              --vfs-cache-mode=${cfg.vfsCacheMode} \
+              --vfs-cache-mode="$vfs_cache_mode" \
               ${shellArgs cfg.extraMountArgs} \
               "''${extra_args[@]}"
           done
@@ -146,7 +161,7 @@ in
       };
 
       unmountScript = pkgs.writeShellApplication {
-        name = "unmount-darkmatter";
+        name = "unmount-darkmatter"; meta.description = "Unmount Cloudflare R2 buckets";
         runtimeInputs = [
           pkgs.coreutils
         ];
@@ -192,7 +207,7 @@ in
       };
 
       configureScript = pkgs.writeShellApplication {
-        name = "configure-darkmatter-r2";
+        name = "configure-darkmatter-r2"; meta.description = "Configure rclone remote for Cloudflare R2";
         runtimeInputs = [
           pkgs.rclone
           pkgs.coreutils
@@ -286,6 +301,23 @@ in
             public = {
               bucket = "darkmatter-public";
             };
+            runtime = {
+              bucket = "darkmatter-runtime";
+            };
+            lfs = {
+              bucket = "darkmatter-lfs";
+              vfsCacheMode = "full";
+              extraMountArgs = [
+                "--vfs-cache-max-size"
+                "200G"
+                "--vfs-cache-max-age"
+                "720h"
+                "--dir-cache-time"
+                "1h"
+                "--poll-interval"
+                "0"
+              ];
+            };
             team = {
               bucket = "darkmatter-team";
             };
@@ -310,15 +342,15 @@ in
         apps = {
           mount-darkmatter = {
             type = "app";
-            program = "${mountScript}/bin/mount-darkmatter";
+            program = "${mountScript}/bin/mount-darkmatter"; meta.description = "Mount Cloudflare R2 buckets locally via rclone";
           };
           unmount-darkmatter = {
             type = "app";
-            program = "${unmountScript}/bin/unmount-darkmatter";
+            program = "${unmountScript}/bin/unmount-darkmatter"; meta.description = "Unmount Cloudflare R2 buckets";
           };
           configure-darkmatter-r2 = {
             type = "app";
-            program = "${configureScript}/bin/configure-darkmatter-r2";
+            program = "${configureScript}/bin/configure-darkmatter-r2"; meta.description = "Configure rclone remote for Cloudflare R2";
           };
         };
       };

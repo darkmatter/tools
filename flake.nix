@@ -68,10 +68,10 @@
         {
           # Test sops-rekey workflow generation
           darkmatter.ci.sops-rekey.enable = true;
-          packages.sops-rekey-workflow = config.githubActions.workflowsDir;
+          packages.sops-rekey-workflow = config.githubActions.workflowsDir.overrideAttrs (old: { meta = (old.meta or {}) // { description = "GitHub Actions workflow for SOPS rekey"; }; });
 
           # Expose mount-darkmatter / unmount-darkmatter / configure-darkmatter-r2
-          # apps that mount Cloudflare R2 buckets at ~/darkmatter/{public,team,personal}.
+          # apps that mount Cloudflare R2 buckets at ~/darkmatter/{public,runtime,lfs,team,personal}.
           darkmatter.r2.enable = true;
         };
     };

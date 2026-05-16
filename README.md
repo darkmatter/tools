@@ -1,6 +1,6 @@
 # Darkmatter Nix Devkit
 
-This repo contains several utilities for the Darkmatter team - the goal being that all tools required to onboard and be productive can be encapsulated in a single Nix flake. 
+This repo contains several utilities for the Darkmatter team - the goal being that all tools required to onboard and be productive can be encapsulated in a single Nix flake.
 
 ## Quick Start
 
@@ -20,34 +20,39 @@ The secrets required to get set up are checked into this repo age-encrypted usin
 
 **Accessing Secrets**
 
-In the `keys` directory, you can add your own age public key and then commit it back into this repo:
+The easiest self-serve path is the join utility:
 
 ```bash
+nix run github:darkmatter/tools#sops-join
+```
 
-# 1a) Generate an age key from your existing SSH key
-$ nix run nixpkgs#ssh-to-age -- \
-  -i ~/.ssh/id_ed25519.pub \
-  >> ~/Library/Application\ Support/sops/age/keys.txt # put it here to have SOPS autodetect it
+It generates a new personal age identity, saves the private key where SOPS auto-detects it, writes your public recipient to `ops/keys/team/<username>.pub`, regenerates `.sops.yaml`, and can commit + push the recipient change for you. That push triggers the GitHub Actions SOPS rekey workflow, which updates encrypted files for the new recipient without human intervention.
 
-# 1b) Alternatively, generate a key from scratch
-$ nix develop nixpkgs#age -c age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
+The workflow needs a repository Actions secret named `SOPS_AGE_KEY` containing an age identity that can decrypt the current secrets. It regenerates `.sops.yaml` from `sops.nix`, runs `sops updatekeys` on encrypted files, then commits the rekeyed files back to the branch.
 
-# Add your key to the repo
-echo "age.." > ops/keys/team/<username>.pub
+If you are on the Darkmatter Tailscale network, the SOPS keyservice can decrypt secrets for day-to-day work even before your personal key is added. You should still add your own recipient for security and resilience, and services/agents should use their own separate recipient instead of sharing a human key.
 
-git add ops/keys/team/<username>.pub
-git commit -m "Add my age public key"
+Manual flow, if you do not want to use the utility:
 
-# Push the changes to the repo
+```bash
+# Generate a personal age identity. Use the printed public key below.
+age-keygen >> ~/Library/Application\ Support/sops/age/keys.txt
+
+# Add your public recipient to the repo.
+echo "age1..." > ops/keys/team/<username>.pub
+
+# Regenerate .sops.yaml from ops/keys/team and push.
+nix eval --raw -f ./sops.nix yaml > .sops.yaml
+git add ops/keys/team/<username>.pub .sops.yaml
+git commit -m "chore(secrets): add sops recipient for <username>"
 git push
 ```
 
-That will kick off a GitHub Actions workflow that will rekey the secrets using your key. Since the action has it's own key, it does not require human intervention, and piggybacks on our Github roles which are provisioned by our internal SSO (Authentik) which is convenient.
-
-After you pull, you'll find you can decrypt the secrets using your key.
+After CI finishes, pull and verify that your key can decrypt the secrets:
 
 ```bash
-sops decrypt secrets/<secret>.yaml
+git pull
+sops decrypt ops/secrets/rclone-config.sops.yaml >/dev/null && echo "Decrypted successfully"
 ```
 
 ## 2. Shared Drive
@@ -55,7 +60,6 @@ sops decrypt secrets/<secret>.yaml
 > Status: **Ready** ✅
 
 The `rclone setup` command will mount our shared Google Drive at `~/darkmatter/shared`, and mount a personal drive for you at `~/darkmatter/<username>`. The OAuth secrets are checked into this repo age-encrypted to simplify onboarding. The setup tool will have you log into your Google account in a browser to grant access.
-
 
 via `fuse3` and `rclone`, as well as a command menu for managing the shared Drive and other utilities.
 
@@ -121,6 +125,12 @@ The wrappers also default:
 `SOPS_KEYSERVICE=tcp://sops-keyservice.tail6277a6.ts.net:5000`
 
 You can override either `SOPS_KEYSERVICE` or `RCLONE_CONFIG` in the environment if needed. If `RCLONE_CONFIG` is already set, the wrappers use that file instead of decrypting the checked-in SOPS config.
+
+The shared checked-in config intentionally does not need to contain a user-specific OAuth token. To create or refresh your local token, run:
+
+`nix run github:darkmatter/tools#rclone-drive -- reconnect darkmatter-google-drive`
+
+That opens the browser OAuth flow, writes only your per-user token to `~/.config/rclone/rclone.conf`, and future mounts merge that local token with the shared SOPS-managed config.
 
 To update the encrypted shared Google Drive config:
 
@@ -272,10 +282,12 @@ This flake also exposes a few runnable utilities for the team.
 
 ### Cloudflare R2 mounts at `~/darkmatter`
 
-Three Cloudflare R2 buckets are exposed as local FUSE mounts under `~/darkmatter`:
+Five Cloudflare R2 buckets are exposed as local FUSE mounts under `~/darkmatter`:
 
-- `~/darkmatter/public`  &mdash; bucket `darkmatter-public`
-- `~/darkmatter/team`    &mdash; bucket `darkmatter-team`
+- `~/darkmatter/public` &mdash; bucket `darkmatter-public`; intended for public web/CDN assets
+- `~/darkmatter/runtime` &mdash; bucket `darkmatter-runtime`; intended for machine-readable shared runtime files and artifacts
+- `~/darkmatter/lfs` &mdash; bucket `darkmatter-lfs`; intended for large files with a full local VFS cache
+- `~/darkmatter/team` &mdash; bucket `darkmatter-team`
 - `~/darkmatter/personal` &mdash; bucket `darkmatter-personal`
 
 One-time setup &mdash; create the rclone remote (`darkmatter-r2`):
@@ -290,14 +302,15 @@ Mount everything (or a single bucket):
 
 ```bash
 nix run github:darkmatter/tools#mount-darkmatter
-nix run github:darkmatter/tools#mount-darkmatter -- team
+nix run github:darkmatter/tools#mount-darkmatter -- runtime
+nix run github:darkmatter/tools#mount-darkmatter -- lfs
 ```
 
 Unmount:
 
 ```bash
 nix run github:darkmatter/tools#unmount-darkmatter
-nix run github:darkmatter/tools#unmount-darkmatter -- personal
+nix run github:darkmatter/tools#unmount-darkmatter -- lfs
 ```
 
 Override the mount root for a single invocation with `DARKMATTER_BASE_DIR=/some/path`.

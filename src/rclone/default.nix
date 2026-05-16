@@ -2,6 +2,7 @@
 let
   rcloneGoogleDrive = pkgs.writeShellApplication {
     name = "rclone-google-drive";
+    meta.description = "Mount and manage Google Drive via rclone";
     runtimeInputs = [
       pkgs.rclone
       pkgs.coreutils
@@ -15,6 +16,7 @@ let
   };
   rcloneDriveSetup = pkgs.writeShellApplication {
     name = "rclone-drive-setup";
+    meta.description = "Setup Google Drive rclone mount";
     runtimeInputs = [
       pkgs.rclone
       pkgs.coreutils
@@ -31,6 +33,7 @@ let
   };
   rcloneDriveLaunchAgent = pkgs.writeShellApplication {
     name = "rclone-drive-launch-agent";
+    meta.description = "macOS LaunchAgent for rclone Google Drive";
     runtimeInputs = [
       pkgs.coreutils
       pkgs.gnused

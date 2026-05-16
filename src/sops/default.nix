@@ -1,6 +1,7 @@
 { pkgs }:
 pkgs.writeShellApplication {
   name = "sops";
+  meta.description = "Wrapper for sops with Darkmatter keyservice";
   runtimeInputs = [
     pkgs.coreutils
     pkgs.gnused
