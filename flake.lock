@@ -28,11 +28,11 @@
         "agent-skills": "agent-skills"
       },
       "locked": {
-        "lastModified": 1778660296,
-        "narHash": "sha256-xzEfQgFbj5klfc0ey4ppoFwocZDWj26VPXbRuVZrXXA=",
+        "lastModified": 1778938334,
+        "narHash": "sha256-MV/q42GSW9kPDBokgML/n4LYAel1xAxBgLdhUbhn8Mg=",
         "owner": "darkmatter",
         "repo": "agents",
-        "rev": "d4ac087647c668547a0214d1647175ccef6dc80e",
+        "rev": "f90abce0a352be1512752b5eb8e76103f8e5353a",
         "type": "github"
       },
       "original": {
@@ -123,11 +123,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778876681,
-        "narHash": "sha256-9XOIxYLBp+sJsPWNnNyk1aVfYXuuRJZ4Anpplm9Tn8g=",
+        "lastModified": 1778937626,
+        "narHash": "sha256-OzLAT0G96WlT/WWaNdkTvQ7E9ohq9h0xQTdL1oe3gm0=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "c7fad8197070948d8aa02cb8922240ee129cab2e",
+        "rev": "d5ece85b6d3d6b5ab5a514b2785fb952b629bfea",
         "type": "github"
       },
       "original": {
