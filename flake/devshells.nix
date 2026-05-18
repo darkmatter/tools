@@ -14,11 +14,5 @@
           source ${../src/devshell/devshell.sh}
         '';
       };
-      devshells.default = (
-        { extraModulesPath, ... }@args:
-        {
-          
-        }
-      );
     };
 }

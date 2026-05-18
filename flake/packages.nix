@@ -12,6 +12,7 @@
       };
       welcome = pkgs.callPackage ../src/welcome { };
       dm = pkgs.callPackage ../src/dm { };
+      lint = pkgs.callPackage ../src/lint { };
     in
     {
       packages = {
@@ -22,7 +23,7 @@
         rclone-drive-launch-agent = rclone.rcloneDriveLaunchAgent;
         sops = sopsWrapper;
         sops-join = sopsJoin;
-        inherit dm welcome;
+        inherit dm welcome lint;
       };
     };
 }

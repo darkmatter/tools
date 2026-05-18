@@ -10,11 +10,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1777875835,
-        "narHash": "sha256-+ghBYIh477YxDPd0sKeD4AwnKJSOXKT0nHuAAGHL1cQ=",
+        "lastModified": 1778976376,
+        "narHash": "sha256-BoLtbQ1OnYDL6yEK99409ZXmIhyhcStoUv9FQgA4pPc=",
         "owner": "Kyure-A",
         "repo": "agent-skills-nix",
-        "rev": "c6cb03f84cda0dc3f5daa05bf4d49f56c182f690",
+        "rev": "e1c086fcb4bc3b5805b87d32d86e9c189eb1f200",
         "type": "github"
       },
       "original": {
@@ -28,11 +28,11 @@
         "agent-skills": "agent-skills"
       },
       "locked": {
-        "lastModified": 1778940200,
-        "narHash": "sha256-IElLs9qUAagHEv29UJMnUtmwC50Vn0cn2TPGMwopehA=",
+        "lastModified": 1779102520,
+        "narHash": "sha256-JLCpi+TPX5+gzH2joDB+7E+UPjQQ37ata1y9ELMDzRM=",
         "owner": "darkmatter",
         "repo": "skills",
-        "rev": "b8bcdaf862414902a290f23b02765a884033f88f",
+        "rev": "4e25def0c1861df874e6c31330fcf06d9d42bf90",
         "type": "github"
       },
       "original": {
@@ -123,11 +123,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778937626,
-        "narHash": "sha256-OzLAT0G96WlT/WWaNdkTvQ7E9ohq9h0xQTdL1oe3gm0=",
+        "lastModified": 1779075347,
+        "narHash": "sha256-ZqttlFPw0meQMdABi8/vgle14OWQ3FkIqUkb4/Mrc+0=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "d5ece85b6d3d6b5ab5a514b2785fb952b629bfea",
+        "rev": "08c9d01457badce151aa4a983c475042d9dec018",
         "type": "github"
       },
       "original": {
